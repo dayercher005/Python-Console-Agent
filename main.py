@@ -2,13 +2,18 @@ import json
 import os
 import sys
 import os.path
+from dotenv import load_dotenv
 from typing import List, Callable, Tuple, Any, Optional
 from dataclasses import dataclass, field
 import anthropic
 from pydantic import BaseModel, Field
 
+load_dotenv()
+
 def main():
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),
+    )
 
     def get_user_message() -> Tuple[str, bool]:
         try:
@@ -22,21 +27,9 @@ def main():
     tools = [READ_FILE_DEFINITION, LIST_FILES_DEFINITION, EDIT_FILE_DEFINITION]
     agent = Agent(client=client, get_user_message=get_user_message, tools=tools)
     try:
-        agent.run()
+        agent.Run()
     except Exception as e:
         print(f"Error: {str(e)}")
-
-
-def NewAgent(
-    client: anthropic.Anthropic,
-    get_user_message: Callable[[], Tuple[str, bool]],
-    tools: List['ToolDefinition'], 
-) -> 'Agent':
-    return Agent(
-        client=client,
-        get_user_message=get_user_message,
-        tools=tools,
-    )
 
 class Agent:
     def __init__(
@@ -50,7 +43,7 @@ class Agent:
         self.tools = tools
 
 
-    def run(self):
+    def Run(self):
         conversation = []
 
         print("Chat with Claude (use 'ctrl-c' to quit)")
