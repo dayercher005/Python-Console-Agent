@@ -15,7 +15,7 @@ def main():
         api_key=os.environ.get("ANTHROPIC_API_KEY"),
     )
 
-    def get_user_message() -> Tuple[str, bool]:
+    def getUserMessage() -> Tuple[str, bool]:
         try:
             line = sys.stdin.readline()
             if not line:
@@ -25,7 +25,7 @@ def main():
             return "", False
 
     tools = [READ_FILE_DEFINITION, LIST_FILES_DEFINITION, EDIT_FILE_DEFINITION]
-    agent = Agent(client=client, get_user_message=get_user_message, tools=tools)
+    agent = Agent(client=client, getUserMessage=getUserMessage, tools=tools)
     try:
         agent.Run()
     except Exception as e:
@@ -35,11 +35,11 @@ class Agent:
     def __init__(
         self,
         client: anthropic.Anthropic,
-        get_user_message: Callable[[], Tuple[str, bool]],
+        getUserMessage: Callable[[], Tuple[str, bool]],
         tools: List['ToolDefinition'], 
     ):
         self.client = client
-        self.get_user_message = get_user_message
+        self.getUserMessage = getUserMessage
         self.tools = tools
 
 
@@ -52,7 +52,7 @@ class Agent:
         while True:
             if read_user_input:
                 print("You: ", end="", flush=True)
-                user_input, ok = self.get_user_message()
+                user_input, ok = self.getUserMessage()
                 if not ok:
                     break
 
@@ -67,7 +67,7 @@ class Agent:
                 }
                 conversation.append(user_message)
 
-            message = self.run_inference(conversation)
+            message = self.runInference(conversation)
             
             message_param = {
                 "role": "assistant",
@@ -91,7 +91,7 @@ class Agent:
                 if content.type == "text":
                     print(f"Claude: {content.text}")
                 elif content.type == "tool_use":
-                    result = self.execute_tool(content.id, content.name, content.input)
+                    result = self.ExecuteTool(content.id, content.name, content.input)
                     tool_results.append(result)
             
             if len(tool_results) == 0:
@@ -105,7 +105,7 @@ class Agent:
             })
 
 
-    def execute_tool(self, id: str, name: str, input_data: Any) -> dict:
+    def ExecuteTool(self, id: str, name: str, input_data: Any) -> dict:
         tool_def = None
         found = False
         for tool in self.tools:
@@ -147,7 +147,7 @@ class Agent:
             }
 
 
-    def run_inference(self, conversation: List[dict]) -> anthropic.types.Message:
+    def runInference(self, conversation: List[dict]) -> anthropic.types.Message:
         anthropic_tools = []
         for tool in self.tools:
             anthropic_tools.append({
