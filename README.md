@@ -30,11 +30,6 @@ git clone git@github.com:dayercher005/AI-Console-Agent.git
 pip install anthropic
 ```
 
-### 3. Export API Key into Console:
-```bash
-export ANTHROPIC_API_KEY="Your API Key Details here"
-```
-
 ### 3. Run it on the console: 
 ```bash
 python3 main.py
