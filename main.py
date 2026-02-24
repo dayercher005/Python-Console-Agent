@@ -12,7 +12,6 @@ def main():
 
     def get_user_message() -> Tuple[str, bool]:
         try:
-            # Using sys.stdin.readline() to mimic bufio.Scanner(os.Stdin)
             line = sys.stdin.readline()
             if not line:
                 return "", False
@@ -31,12 +30,12 @@ def main():
 def NewAgent(
     client: anthropic.Anthropic,
     get_user_message: Callable[[], Tuple[str, bool]],
-    tools: List['ToolDefinition'], # Tool Definitions for Agent
+    tools: List['ToolDefinition'], 
 ) -> 'Agent':
     return Agent(
         client=client,
         get_user_message=get_user_message,
-        tools=tools, # Tool Definitions for Agent
+        tools=tools,
     )
 
 class Agent:
@@ -44,11 +43,11 @@ class Agent:
         self,
         client: anthropic.Anthropic,
         get_user_message: Callable[[], Tuple[str, bool]],
-        tools: List['ToolDefinition'], # Tool Definitions for Agent
+        tools: List['ToolDefinition'], 
     ):
         self.client = client
         self.get_user_message = get_user_message
-        self.tools = tools # Tool Definitions for Agent
+        self.tools = tools
 
 
     def run(self):
@@ -77,7 +76,6 @@ class Agent:
 
             message = self.run_inference(conversation)
             
-            # Convert message to the param format for conversation history
             message_param = {
                 "role": "assistant",
                 "content": []
@@ -133,7 +131,6 @@ class Agent:
 
         print(f"tool: {name}({json.dumps(input_data)})")
         try:
-            # In Python SDK, input_data is already a dictionary
             response, err = tool_def.function(input_data)
             if err is not None:
                 return {
@@ -156,10 +153,6 @@ class Agent:
                 "is_error": True
             }
 
-    """
-    Tool Definitions (in anthropicTools) are sent to Anthropic Server and adds it to the conversation array.
-    Anthropic then replies in a specific way if it want to use the tool.
-    """
 
     def run_inference(self, conversation: List[dict]) -> anthropic.types.Message:
         anthropic_tools = []
@@ -178,14 +171,6 @@ class Agent:
         )
         return message
 
-"""
-Each Tool added will have the following properties:
-	* Name for the tool
-	* Description to tell the model what the tool does, when to use and not use it, what it returns etc.
-	* Input Schema that describes, as a JSON schema, what inputs this tool expects and in which form
-	* Function that executes the tool with the input the model sends to us and returns the result.
-"""
-
 @dataclass
 class ToolDefinition:
     name: str
@@ -193,12 +178,9 @@ class ToolDefinition:
     input_schema: dict
     function: Callable[[Any], Tuple[str, Optional[Exception]]]
 
-# Generates a JSON Schema for our tool definition which will be sent to the model
 def GenerateSchema(model_class: type[BaseModel]) -> dict:
     schema = model_class.model_json_schema()
     
-    # Cleaning up the schema to match the reflector style (no $defs, flat structure)
-    # The Go jsonschema reflector used AllowAdditionalProperties: false
     res = {
         "type": "object",
         "properties": schema.get("properties", {}),
@@ -206,19 +188,14 @@ def GenerateSchema(model_class: type[BaseModel]) -> dict:
     }
     return res
 
-"""
-ReadFileDefinition is a tool containing its definitions defined below
-"""
 
 class ReadFileInput(BaseModel):
     path: str = Field(..., description="The relative path of a file in the working directory.")
 
-# This will be sent to the model after it has been converted into JSON format.
 READ_FILE_INPUT_SCHEMA = GenerateSchema(ReadFileInput)
 
 def ReadFile(input_data: Any) -> Tuple[str, Optional[Exception]]:
     try:
-        # In Python, input_data is already a dict from the SDK
         read_file_input = ReadFileInput(**input_data)
         
         with open(read_file_input.path, 'r', encoding='utf-8') as f:
@@ -234,9 +211,6 @@ READ_FILE_DEFINITION = ToolDefinition(
     function=ReadFile,
 )
 
-"""
-ListFiles tool returns the list of file and directories in the current folder.
-"""
 
 class ListFilesInput(BaseModel):
     path: Optional[str] = Field(None, description="Optional relative path to list files from. Defaults to current directory if not provided.")
@@ -252,9 +226,8 @@ def ListFiles(input_data: Any) -> Tuple[str, Optional[Exception]]:
             directory = list_files_input.path
 
         files = []
-        # Mimicking filepath.Walk behavior
+
         for root, dirs, filenames in os.walk(directory):
-            # Calculate relative path from the starting directory
             for name in dirs:
                 full_path = os.path.join(root, name)
                 rel_path = os.path.relpath(full_path, directory)
@@ -266,8 +239,6 @@ def ListFiles(input_data: Any) -> Tuple[str, Optional[Exception]]:
                 if rel_path != ".":
                     files.append(rel_path)
         
-        # filepath.Walk in Go is recursive, but the slice order might differ.
-        # We'll just return the accumulated list.
         return json.dumps(files), None
     except Exception as e:
         return "", e
@@ -279,9 +250,6 @@ LIST_FILES_DEFINITION = ToolDefinition(
     function=ListFiles,
 )
 
-"""
-Edit File tool lets Claude edit files
-"""
 
 class EditFileInput(BaseModel):
     path: str = Field(..., description="The path to the file")
@@ -290,7 +258,7 @@ class EditFileInput(BaseModel):
 
 EDIT_FILE_INPUT_SCHEMA = GenerateSchema(EditFileInput)
 
-def create_new_file(file_path: str, content: str) -> Tuple[str, Optional[Exception]]:
+def CreateNewFile(file_path: str, content: str) -> Tuple[str, Optional[Exception]]:
     try:
         directory = os.path.dirname(file_path)
         if directory and directory != "." and not os.path.exists(directory):
@@ -303,10 +271,6 @@ def create_new_file(file_path: str, content: str) -> Tuple[str, Optional[Excepti
     except Exception as e:
         return "", Exception(f"failed to create file: {str(e)}")
 
-"""
-EditFile function checks the parameters, reads the file and replaces the OldStr with NewStr. 
-Then it writes the content back to disk and returns "OK".
-"""
 
 def EditFile(input_data: Any) -> Tuple[str, Optional[Exception]]:
     try:
@@ -320,12 +284,11 @@ def EditFile(input_data: Any) -> Tuple[str, Optional[Exception]]:
                 old_content = f.read()
         except FileNotFoundError:
             if edit_file_input.old_str == "":
-                return create_new_file(edit_file_input.path, edit_file_input.new_str)
+                return CreateNewFile(edit_file_input.path, edit_file_input.new_str)
             return "", Exception("file not found")
         except Exception as e:
             return "", e
 
-        # Python replace replaces all occurrences by default
         new_content = old_content.replace(edit_file_input.old_str, edit_file_input.new_str)
 
         if old_content == new_content and edit_file_input.old_str != "":
@@ -347,7 +310,4 @@ EDIT_FILE_DEFINITION = ToolDefinition(
 
 if __name__ == "__main__":
     main()
-
-
-
 
