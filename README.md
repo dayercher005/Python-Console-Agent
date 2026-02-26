@@ -20,8 +20,10 @@ Definition: An autonomous software system that uses artificial intelligence to a
 * Python. You can install it <a target="_blank" href="https://www.python.org/downloads/">here</a>
 * Open Router API Key, and set it as an environment variable, `OPEN_ROUTER_API_KEY`.
 
+
 > [!NOTE]  
 > The Model uses Claude 3.5 Haiku Model. However, any model supported in Open Router Models can also be used.
+
 
 ### 1. Clone the repository
 ```git
@@ -41,5 +43,5 @@ python3 main.py
 
 ### Acknowledgements
 
-View the Open Router Documentation <a href="https://openrouter.ai/docs/quickstart" target="_blank">here</a>.
-View the OpenAI API Documentation <a target="_blank" href="https://developers.openai.com/api/docs">here</a>
+* View the Open Router Documentation <a href="https://openrouter.ai/docs/quickstart" target="_blank">here</a>.
+* View the OpenAI API Documentation <a target="_blank" href="https://developers.openai.com/api/docs">here</a>
