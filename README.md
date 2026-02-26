@@ -1,6 +1,7 @@
 # Python Console Agent
 
-Run your own AI Console Agent with your own Anthropic API Key with Python.
+Run your own AI Console Agent with your with Python.
+This guide can be used with either Anthropic API Key or Open Router API Key.
 
 ## AI Agent Definition
 
@@ -18,14 +19,15 @@ Definition: An autonomous software system that uses artificial intelligence to a
 
 ### Prerequisites
 * Python. You can install it <a target="_blank" href="https://www.python.org/downloads/">here</a>
-* Anthropic API Key, and set it as an environment variable, `ANTHROPIC_API_KEY`. 
+* Anthropic API Key, and set it as an environment variable, `ANTHROPIC_API_KEY`, or
+* Open Router API Key, and set it as an environment variable, `OPEN_ROUTER_API_KEY`.
 
 ### 1. Clone the repository
 ```git
 git clone git@github.com:dayercher005/AI-Console-Agent.git
 ```
 
-### 2. Install necessary dependencies for Anthropic Library
+### 2. Install necessary dependencies for Anthropic Library ()
 ```bash
 pip install anthropic
 ```
